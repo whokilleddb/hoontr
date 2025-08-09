@@ -2,6 +2,7 @@ mod cli;
 mod findfiles;
 
 use std::path::Path;
+use num_cpus;
 
 fn banner() {
     println!(
@@ -44,9 +45,10 @@ fn main() {
         println!("[!] The `recurse` flag will be ignored as provided path does not point to a directory");
     }
 
-    
+    let thread_count = num_cpus::get();
     let targets: Vec<String> = findfiles::scan_path(path, recurse);
-    println!("[+] Selected {} targets for hoonting", targets.len());
+    println!("[+] Selected {} targets for hoonting using {} threads", targets.len(), thread_count);
+
 
 
 }
