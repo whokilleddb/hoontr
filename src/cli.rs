@@ -1,5 +1,28 @@
 use clap::{Arg, ArgAction, Command, crate_name, crate_authors, crate_description, crate_version};
 
+
+/*
+Command line flags to have something like:
+
+Usage: hoontr.exe [OPTIONS] --path <PATH> <COMMAND>
+
+Commands:
+  bytehoont    Enumerate for a particular byte sequence
+  stomphoont   Enumerate for dlls to stomp
+  exporthoont  Enumerate DLLs for exported functions
+  help         Print this message or the help of the given subcommand(s)
+
+Options:
+  -p, --path <PATH>  Path to file or folder to enumerate
+      --nobanner     Do not print intro banner
+  -r, --recurse      If the value specified by --path is a directory, recursively enumerate all subdirectories
+  -h, --help         Print help
+
+----------------------------------------------------------------------------------------------------------------------
+
+Developer Notes: Why does life have to be all suffering with only moments of reprieve? 
+
+*/
 pub fn gen_cli() -> Command {
     let matches = Command::new(crate_name!())
     .version(crate_version!())

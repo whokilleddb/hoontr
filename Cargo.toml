@@ -3,7 +3,7 @@ name = "hoontr"
 version = "0.1.0"
 edition = "2024"
 author = "whokilleddb"
-description = "Find the right DLL for the job"
+description = "Hoontr - Find the right DLL for the job"
 
 [dependencies]
 clap = { version = "4.0", features = ["cargo"] }
