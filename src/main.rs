@@ -49,6 +49,23 @@ fn main() {
     let targets: Vec<String> = findfiles::scan_path(path, recurse);
     println!("[+] Selected {} targets for hoonting using {} threads", targets.len(), thread_count);
 
-
+    match matches.subcommand() {
+        Some(("bytehoont", sub_matches)) => {
+            let bytefile = sub_matches.get_one::<String>("bytefile").unwrap();
+            // println!("[+] Searching for DLLs with a .text section with {} bytes or more", bytefile);
+            // Your bytehoont logic here
+        }
+        Some(("stomphoont", sub_matches)) => {
+            let shellcode_size = sub_matches.get_one::<usize>("shellcode_size").unwrap();
+            println!("[+] Searching for DLLs with a .text section with {} bytes or more", shellcode_size);
+            // Your stomphoont logic here
+        }
+        Some(("exporthoont", sub_matches)) => {
+            let func_name = sub_matches.get_one::<String>("func_name").unwrap();
+            println!("Running exporthoont with function name: {}", func_name);
+            // Your exporthoont logic here
+        },
+        _ => unreachable!(),
+    }
 
 }
