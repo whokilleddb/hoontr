@@ -1,4 +1,5 @@
 mod cli;
+mod findfiles;
 
 use std::path::Path;
 
@@ -44,4 +45,8 @@ fn main() {
     }
 
     
+    let targets: Vec<String> = findfiles::scan_path(path, recurse);
+    println!("[+] Selected {} targets for hoonting", targets.len());
+
+
 }
