@@ -9,3 +9,4 @@ description = "Hoontr - Find the right DLL for the job"
 clap = { version = "4.0", features = ["cargo"] }
 walkdir = "2.5.0"
 num_cpus = "1.13"
+goblin = "0.10.0"

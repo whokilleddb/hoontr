@@ -1,5 +1,6 @@
 mod cli;
 mod findfiles;
+mod stomp;
 
 use std::path::Path;
 use num_cpus;
@@ -51,13 +52,14 @@ fn main() {
 
     match matches.subcommand() {
         Some(("bytehoont", sub_matches)) => {
-            let bytefile = sub_matches.get_one::<String>("bytefile").unwrap();
+            let _bytefile = sub_matches.get_one::<String>("bytefile").unwrap();
             // println!("[+] Searching for DLLs with a .text section with {} bytes or more", bytefile);
             // Your bytehoont logic here
         }
         Some(("stomphoont", sub_matches)) => {
-            let shellcode_size = sub_matches.get_one::<usize>("shellcode_size").unwrap();
-            println!("[+] Searching for DLLs with a .text section with {} bytes or more", shellcode_size);
+            let shellcode_size = sub_matches.get_one::<u32>("shellcode_size").unwrap();
+            println!("[+] Searching for DLLs with a `.text` section with a virtual size of {} bytes or more", shellcode_size);
+            stomp::hoont_stomps(targets, thread_count, *shellcode_size);
             // Your stomphoont logic here
         }
         Some(("exporthoont", sub_matches)) => {

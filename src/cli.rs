@@ -50,7 +50,7 @@ pub fn gen_cli() -> Command {
             .value_name("SHELLCODE_SIZE")
             .help("Minimum size of .text size section to look for")
             .required(true)
-            .value_parser(clap::value_parser!(usize))
+            .value_parser(clap::value_parser!(u32))
         )
     )
     .subcommand(
@@ -73,7 +73,7 @@ pub fn gen_cli() -> Command {
         .long("path")
         .value_name("PATH")
         .help("Path to file or folder to enumerate")
-        .required(true)
+        .default_value(r"C:\Windows\System32")
         .value_parser(clap::value_parser!(String))
     )
     .arg(
