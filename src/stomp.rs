@@ -88,7 +88,7 @@ pub fn check_stompable(
                                     } else {"x64"}
                                 };
 
-                            let _guard = print_lock.lock().unwrap();let _guard = print_lock.lock().unwrap();
+                            let _guard = print_lock.lock().unwrap();
                             println!("\t| {}\t\t| {}\t\t| {}\t| {} ({})",
                                 arch,
                                 if is_managed_dll { "YES"} else {"NO"},
