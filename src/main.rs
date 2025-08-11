@@ -25,7 +25,7 @@ fn banner() {
        \ \_\ \_\ \____/\ \____/\ \_\ \_\ \__\\ \_\ 
         \/_/\/_/\/___/  \/___/  \/_/\/_/\/__/ \/_/ 
                                                
-        A hoontr must hoont - Eileen the crow
+        A hoontr must hoont - Eileen the Crow
 
     ");
     
