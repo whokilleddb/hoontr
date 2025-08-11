@@ -1,9 +1,12 @@
 mod cli;
 mod findfiles;
 mod stomp;
+use std::{process::exit, thread};
 
 use std::path::Path;
 use num_cpus;
+use std::sync::{Arc, Mutex};
+use clap::ArgMatches;
 
 fn banner() {
     println!(
@@ -22,52 +25,109 @@ fn banner() {
     
 }
 
+fn is_path_valid<'a>(matches: &'a ArgMatches) ->&'a Path {
+    let path_str: &String = matches.get_one::<String>("path").unwrap();
+    let path = Path::new(path_str);
+
+    if !path.exists() {
+        eprintln!("[-] Path {} does not exist!", path_str);
+        exit(-1);
+    }
+
+    path
+}
+
 fn main() {
-    let matches = cli::gen_cli().get_matches();
-   
+    let matches: ArgMatches = cli::gen_cli().get_matches();
+
+    // Do we print a banner?
     if !matches.get_flag("nobanner") {
         banner();
     }
 
     // Get value provided by --path
-    let path_str: &String = matches.get_one::<String>("path").unwrap();
-    let path: &Path = Path::new(path_str);
-
-    if !path.exists() {
-        eprintln!("[-] Path {} does not exist!", path_str);
-        return;
-    }
-
-    println!("[+] Enumerating artefacts in: {}", path_str);
-
-    // Check if the recurse flag is set
+    let path = is_path_valid(&matches);
+    
     let recurse = matches.get_flag("recurse");
     if path.is_file() && recurse {
         println!("[!] The `recurse` flag will be ignored as provided path does not point to a directory");
     }
 
-    let thread_count = num_cpus::get();
-    let targets: Vec<String> = findfiles::scan_path(path, recurse);
-    println!("[+] Selected {} targets for hoonting using {} threads", targets.len(), thread_count);
+    let all_pes = matches.get_flag("all_pe");
+    let th_count = num_cpus::get();
+    let targets: Vec<String> = findfiles::scan_path(path, recurse, all_pes);
+    println!("[+] Selected {} targets for hoonting using {} threads", targets.len(), th_count);
 
-    match matches.subcommand() {
-        Some(("bytehoont", sub_matches)) => {
-            let _bytefile = sub_matches.get_one::<String>("bytefile").unwrap();
-            // println!("[+] Searching for DLLs with a .text section with {} bytes or more", bytefile);
-            // Your bytehoont logic here
-        }
-        Some(("stomphoont", sub_matches)) => {
-            let shellcode_size = sub_matches.get_one::<u32>("shellcode_size").unwrap();
-            println!("[+] Searching for DLLs with a `.text` section with a virtual size of {} bytes or more", shellcode_size);
-            stomp::hoont_stomps(targets, thread_count, *shellcode_size);
-            // Your stomphoont logic here
-        }
-        Some(("exporthoont", sub_matches)) => {
-            let func_name = sub_matches.get_one::<String>("func_name").unwrap();
-            println!("Running exporthoont with function name: {}", func_name);
-            // Your exporthoont logic here
+    // Create a mutex for synchronized console output
+    let print_lock = Arc::new(Mutex::new(()));
+    
+    // Calculate chunk size for dividing targets
+    let chunk_size = (targets.len() + th_count - 1) / th_count; // Ceiling division
+    
+    // Create thread handles
+    let mut handles = Vec::new();
+
+    let subcommand = matches.subcommand().map(|(name, sub)| (name.to_string(), sub.clone()));
+
+    // Divide targets into chunks and create threads
+
+
+    match &subcommand {
+        Some((name, sub_matches)) if name == "stomphoont" => {
+            println!("[+] Searching for DLLs with a `.text` section with a virtual size of {} bytes or more\n", sub_matches.get_one::<u32>("shellcode_size").unwrap());
+            println!("\t| ARCHITECTURE\t| IS MANAGED?\t| CFG STATUS\t|DLL (VIRTUAL SIZE)");
         },
-        _ => unreachable!(),
+        _ => unreachable!()
+    }
+
+    for i in 0..th_count {
+        let start = i * chunk_size;
+        let end = std::cmp::min(start + chunk_size, targets.len());
+        
+        // Skip if no elements for this thread
+        if start >= targets.len() {
+            break;
+        }
+        
+        // Clone the chunk for this thread
+        let chunk: Vec<String> = targets[start..end].to_vec();
+        let print_lock_clone = Arc::clone(&print_lock);
+
+        // Create thread
+        match &subcommand {
+            // Some(("bytehoont", sub_matches)) => {
+            //     let _bytefile = sub_matches.get_one::<String>("bytefile").unwrap();
+            //     // println!("[+] Searching for DLLs with a .text section with {} bytes or more", bytefile);
+            //     // Your bytehoont logic here
+            // },
+
+            Some((name, sub_matches)) if name == "stomphoont" => {
+                let shellcode_size = sub_matches.get_one::<u32>("shellcode_size").unwrap();
+                let no_cfg = sub_matches.get_flag("no_cfg");
+                let arch = sub_matches.get_one::<String>("arch").unwrap().clone();
+
+                let handle = thread::spawn({
+                    let shellcode_size = *shellcode_size;
+                    move || {
+                        stomp::check_stompable(chunk, shellcode_size, no_cfg, arch, print_lock_clone);
+                    }
+                });
+                handles.push(handle);
+            }
+
+            // Some(("exporthoont", sub_matches)) => {
+            //     let func_name = sub_matches.get_one::<String>("func_name").unwrap();
+            //     println!("Running exporthoont with function name: {}", func_name);
+            //     // Your exporthoont logic here
+            // },
+            _ => unreachable!(),
+        };
+        
+    }
+    
+    // Wait for all threads to complete
+    for handle in handles {
+        handle.join().unwrap();
     }
 
 }

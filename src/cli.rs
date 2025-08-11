@@ -52,6 +52,21 @@ pub fn gen_cli() -> Command {
             .required(true)
             .value_parser(clap::value_parser!(u32))
         )
+        .arg(
+            Arg::new("no_cfg")
+            .long("no-cfg")
+            .value_name("NO_CFG")
+            .help("Only include DLLs with CFG disabled")
+            .action(ArgAction::SetTrue)
+        )
+        .arg(
+            Arg::new("arch")
+            .long("arch")
+            .value_name("ARCH")
+            .help("Target architecture")
+            .default_value("all")
+            .value_parser(["all", "x86", "x64"])
+        )
     )
     .subcommand(
         Command::new("exporthoont")
@@ -90,8 +105,14 @@ pub fn gen_cli() -> Command {
         .value_name("RECURSE")
         .help("If the value specified by --path is a directory, recursively enumerate all subdirectories")
         .action(ArgAction::SetTrue)
+    )
+    .arg(
+        Arg::new("all_pe")
+        .long("pe")
+        .value_name("ALL_PE")
+        .help("Include other PE files like EXEs and CPLs in scope as well")
+        .action(ArgAction::SetTrue)
     );
-
     return matches;
 
 }
