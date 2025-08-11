@@ -1,6 +1,7 @@
 mod cli;
 mod findfiles;
 mod stomp;
+mod userenums;
 use std::{process::exit, thread};
 
 use std::path::Path;
@@ -39,6 +40,8 @@ fn is_path_valid<'a>(matches: &'a ArgMatches) ->&'a Path {
 
 fn main() {
     let matches: ArgMatches = cli::gen_cli().get_matches();
+
+    let arch = matches.get_one::<String>("arch").unwrap().parse::<userenums::ARCH>().unwrap();
 
     // Do we print a banner?
     if !matches.get_flag("nobanner") {
@@ -104,7 +107,6 @@ fn main() {
             Some((name, sub_matches)) if name == "stomphoont" => {
                 let shellcode_size = sub_matches.get_one::<u32>("shellcode_size").unwrap();
                 let no_cfg = sub_matches.get_flag("no_cfg");
-                let arch = sub_matches.get_one::<String>("arch").unwrap().clone();
 
                 let handle = thread::spawn({
                     let shellcode_size = *shellcode_size;

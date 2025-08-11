@@ -59,14 +59,6 @@ pub fn gen_cli() -> Command {
             .help("Only include DLLs with CFG disabled")
             .action(ArgAction::SetTrue)
         )
-        .arg(
-            Arg::new("arch")
-            .long("arch")
-            .value_name("ARCH")
-            .help("Target architecture")
-            .default_value("all")
-            .value_parser(["all", "x86", "x64"])
-        )
     )
     .subcommand(
         Command::new("exporthoont")
@@ -112,6 +104,14 @@ pub fn gen_cli() -> Command {
         .value_name("ALL_PE")
         .help("Include other PE files like EXEs and CPLs in scope as well")
         .action(ArgAction::SetTrue)
+    )
+    .arg(
+        Arg::new("arch")
+        .long("arch")
+        .value_name("ARCH")
+        .help("Target architecture")
+        .default_value("all")
+        .value_parser(["all", "x86", "x64"])
     );
     return matches;
 

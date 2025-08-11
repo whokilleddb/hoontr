@@ -6,6 +6,7 @@ use std::io::Read;
 use goblin::pe::{header, PE};
 use std::str;
 use std;
+use crate::userenums::ARCH;
 
 const IMAGE_DLLCHARACTERISTICS_GUARD_CF: u16 = 0x4000;
 const IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR: usize = 14;
@@ -14,7 +15,7 @@ pub fn check_stompable(
     targets: Vec<String>, 
     threshold_size: u32, 
     show_no_cfg_only: bool,
-    arch: String,
+    arch: ARCH,
     print_lock: Arc<Mutex<()>>
 ) {
     for target in targets {
@@ -70,7 +71,7 @@ pub fn check_stompable(
                                 _ => "UNKNOWN"
                             };
                             
-                            let arch = if arch == "all" {
+                            let arch = if arch == ARCH::All {
                                     if pe.header.coff_header.machine == header::COFF_MACHINE_X86_64 {
                                         "x64"
                                     } else if pe.header.coff_header.machine == header::COFF_MACHINE_X86 {
@@ -78,7 +79,7 @@ pub fn check_stompable(
                                     } else {
                                         "Unknown"
                                     }
-                                } else if  arch == "x86" {
+                                } else if   arch == ARCH::X86 {
                                     if pe.header.coff_header.machine != header::COFF_MACHINE_X86 {
                                         continue
                                     } else {
