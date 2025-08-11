@@ -4,6 +4,7 @@ mod stomp;
 mod userenums;
 mod opcode;
 mod consts;
+mod export;
 
 use std::{process::exit, thread};
 use std::fs;
@@ -50,11 +51,12 @@ fn is_path_valid<'a>(matches: &'a ArgMatches) ->&'a Path {
 fn main() {
     let matches: ArgMatches = cli::gen_cli().get_matches();                         // Get command line arguments
     let mut file_bytes: Vec<u8> = Vec::new();                                       // Save file bytes here
-    let disable_banner: bool;                                           // Do not show banner
-    let recurse: bool;                                                  // Recursively search a dir
-    let all_pes: bool;                                                  // Search for artefacts in all sorts of PEs
-    let th_count = num_cpus::get();                                          // Number of threads
-    let print_lock = Arc::new(Mutex::new(()));                // Create a mutex for synchronized console output
+    let disable_banner: bool;                                                       // Do not show banner
+    let recurse: bool;                                                              // Recursively search a dir
+    let all_pes: bool;                                                               // Search for artefacts in all sorts of PEs
+    let th_count = num_cpus::get();                                           // Number of threads
+    let print_lock = Arc::new(Mutex::new(()));                 // Create a mutex for synchronized console output
+    let mut export_str: String = String::default();                                                         // Exported string to look out for
 
     // Get value of --arch, --nobanner, --recurse
     let arch = match matches.subcommand() {
@@ -68,6 +70,10 @@ fn main() {
             if name.eq_ignore_ascii_case("bytehoont") {
                 let bytefile: &String = submatch.get_one::<String>("bytefile").unwrap();
                 file_bytes = fs::read(bytefile).unwrap();
+            }
+
+            if name.eq_ignore_ascii_case("exporthoont") {
+                export_str = submatch.get_one::<String>("func_name").unwrap().clone();
             }
 
             submatch.get_one::<String>("arch").unwrap().parse::<userenums::ARCH>().unwrap()
@@ -109,13 +115,16 @@ fn main() {
             for byte in &file_bytes {
                 print!("{:02x} ", byte);
             }
-            // println!("\n");
         },
+
+        Some((name, _sub_matches)) if name == "exporthoont" => {
+            println!("[+] Searching for artefacts which exports the function with the following string: {}", export_str);
+        },
+
         _ => unreachable!()
     }
 
     for i in 0..th_count {
-
         let start = i * chunk_size;
         let end = std::cmp::min(start + chunk_size, targets.len());
         
@@ -153,11 +162,17 @@ fn main() {
                 handles.push(handle);
             }
 
-            // Some(("exporthoont", sub_matches)) => {
-            //     let func_name = sub_matches.get_one::<String>("func_name").unwrap();
-            //     println!("Running exporthoont with function name: {}", func_name);
-            //     // Your exporthoont logic here
-            // },
+            Some((name, _sub_matches)) if name == "exporthoont" => { 
+                let match_case = _sub_matches.get_flag("match_case");
+                let handle = thread::spawn({
+                    let exp_str = export_str.clone();
+                    move || {
+                       export::find_exports(chunk, exp_str, arch, match_case, print_lock_clone);
+                    }
+                });
+                handles.push(handle);  
+            },
+
             _ => unreachable!(),
         };
         

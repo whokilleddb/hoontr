@@ -91,6 +91,13 @@ pub fn gen_cli() -> Command {
                         .required(true)
                         .value_parser(clap::value_parser!(String))
                 )
+                .arg(
+                    Arg::new("match_case")
+                        .long("match-case")
+                        .value_name("MATCH_CASE")
+                        .help("Match case of provided string")
+                        .action(ArgAction::SetTrue)
+                )
                 .args(common_args()) // Add common args to this subcommand
         )
         .subcommand_required(true);
