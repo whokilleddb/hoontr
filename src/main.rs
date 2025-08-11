@@ -2,7 +2,11 @@ mod cli;
 mod findfiles;
 mod stomp;
 mod userenums;
+mod opcode;
+mod consts;
+
 use std::{process::exit, thread};
+use std::fs;
 
 use std::path::Path;
 use num_cpus;
@@ -40,6 +44,14 @@ fn is_path_valid<'a>(matches: &'a ArgMatches) ->&'a Path {
 
 fn main() {
     let matches: ArgMatches = cli::gen_cli().get_matches();
+    let mut file_bytes: Vec<u8> = Vec::new();
+    match matches.subcommand() {
+        Some(("bytehoont", sub_matches)) => {
+            let bytefile: &String = sub_matches.get_one::<String>("bytefile").unwrap();
+            file_bytes = fs::read(bytefile).unwrap();
+        },
+        _ => {}
+    };
 
     let arch = matches.get_one::<String>("arch").unwrap().parse::<userenums::ARCH>().unwrap();
 
@@ -73,12 +85,17 @@ fn main() {
     let subcommand = matches.subcommand().map(|(name, sub)| (name.to_string(), sub.clone()));
 
     // Divide targets into chunks and create threads
-
-
     match &subcommand {
         Some((name, sub_matches)) if name == "stomphoont" => {
-            println!("[+] Searching for DLLs with a `.text` section with a virtual size of {} bytes or more\n", sub_matches.get_one::<u32>("shellcode_size").unwrap());
+            println!("[+] Searching for artefacts with a `.text` section with a virtual size of {} bytes or more\n", sub_matches.get_one::<u32>("shellcode_size").unwrap());
             println!("\t| ARCHITECTURE\t| IS MANAGED?\t| CFG STATUS\t|DLL (VIRTUAL SIZE)");
+        },
+         Some((name, _sub_matches)) if name == "bytehoont" => {
+            print!("[+] Searching for artefacts with a `.text` section with the following bytecode: ");
+            for byte in &file_bytes {
+                print!("{:02x} ", byte);
+            }
+            // println!("\n");
         },
         _ => unreachable!()
     }
@@ -98,11 +115,15 @@ fn main() {
 
         // Create thread
         match &subcommand {
-            // Some(("bytehoont", sub_matches)) => {
-            //     let _bytefile = sub_matches.get_one::<String>("bytefile").unwrap();
-            //     // println!("[+] Searching for DLLs with a .text section with {} bytes or more", bytefile);
-            //     // Your bytehoont logic here
-            // },
+            Some((name, _sub_matches)) if name == "bytehoont" => { 
+                let handle = thread::spawn({
+                    let pattern = file_bytes.clone();
+                    move || {
+                        opcode::find_opcode(chunk, pattern, arch, print_lock_clone);
+                    }
+                });
+                handles.push(handle);  
+            },
 
             Some((name, sub_matches)) if name == "stomphoont" => {
                 let shellcode_size = sub_matches.get_one::<u32>("shellcode_size").unwrap();

@@ -7,9 +7,7 @@ use goblin::pe::{header, PE};
 use std::str;
 use std;
 use crate::userenums::ARCH;
-
-const IMAGE_DLLCHARACTERISTICS_GUARD_CF: u16 = 0x4000;
-const IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR: usize = 14;
+use crate::consts::{IMAGE_DLLCHARACTERISTICS_GUARD_CF, IMAGE_DIRECTORY_ENTRY_COM_DESCRIPTOR};
 
 pub fn check_stompable(
     targets: Vec<String>, 
@@ -32,7 +30,6 @@ pub fn check_stompable(
         };
         match PE::parse(&buffer) {
             Ok(pe) => {
-                
                 for section in pe.sections {
                     let section_name = match str::from_utf8(&section.name) {
                         Ok(v) => v,
@@ -91,7 +88,7 @@ pub fn check_stompable(
                                     } else {"x64"}
                                 };
 
-                            let _guard = print_lock.lock().unwrap();
+                            let _guard = print_lock.lock().unwrap();let _guard = print_lock.lock().unwrap();
                             println!("\t| {}\t\t| {}\t\t| {}\t| {} ({})",
                                 arch,
                                 if is_managed_dll { "YES"} else {"NO"},
