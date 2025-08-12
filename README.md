@@ -25,6 +25,12 @@ $ cd hoontr
 $ cargo build --release 
 ```
 
+Or alternatively, fetch the release binary binary using:
+
+```powershell
+iwr "https://github.com/whokilleddb/hoontr/releases/download/v0.1.0/hoontr.exe" -OutFile hoontr.exe
+```
+
 ## Usage 
 
 Once you have compiled the binary, you can check the help menu by using the `-h`/`--help` flag:
