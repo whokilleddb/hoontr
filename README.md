@@ -1,4 +1,4 @@
-# Hoontr - 
+# Hoontr 🦀 
 
 ![](./imgs/hoontr.gif)
 
@@ -13,7 +13,7 @@ Hoontr is a utility tool made for malware developers and red teamers which tries
 - bytehoont: This mode is used to hunt for a give byte sequence in the `.text` section of the specified PEs.
 
 
-The program hunts for the selected artefacts using multiple threads determined by the number of hyperthreaded cpu cores present on the machine and prints the results to stdout 🦀 
+The program hunts for the selected artefacts using multiple threads determined by the number of hyperthreaded cpu cores present on the machine and prints the results to stdout.
 
 
 ## Building the project
